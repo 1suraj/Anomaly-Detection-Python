@@ -7,8 +7,6 @@ import math
 from datetime import datetime, date, time
 from scipy import stats
 from itertools import repeat
-from sklearn.ensemble import IsolationForest
-from sklearn.covariance import EllipticEnvelope
 
 
 print("Initializing data...")
@@ -17,12 +15,14 @@ print("Initialized!")
 
 features = ['Brain_Weight','Body_Weight']
 
-outliers_fraction=0.1
+
+#EllipticEnvelope
 
 print("Starting Elliptic Envelope")
 start_ee = t.time()
 
-ee = EllipticEnvelope(contamination=outliers_fraction)
+from sklearn.covariance import EllipticEnvelope
+ee = EllipticEnvelope(contamination=0.1)
 
 print("Fit data")
 ee.fit(dataset[features]) #Error occurs here.
@@ -32,3 +32,51 @@ del ee
 
 print(dataset[dataset['outlier'] == -1])
 print("Time to execute: ", (t.time()-start_ee))
+
+
+#OneClassSVM
+
+from sklearn.svm import OneClassSVM
+
+ii= OneClassSVM(nu=0.261, gamma=0.05)
+
+print("Fit data")
+ii.fit(dataset[features]) #Error occurs here.
+
+dataset['outlier'] = ii.predict(dataset[features])
+del ii
+
+print(dataset[dataset['outlier'] == -1])
+
+#IsolationForest
+
+from sklearn.ensemble import IsolationForest
+ii= IsolationForest(max_samples=62,contamination=0.25,random_state=np.random.RandomState(42))
+
+print("Fit data")
+ii.fit(dataset[features]) #Error occurs here.
+
+dataset['outlier'] = ii.predict(dataset[features])
+del ii
+
+print(dataset[dataset['outlier'] == -1])
+
+
+#LocalOutlierFactor
+
+
+from sklearn.neighbors import LocalOutlierFactor
+ii=LocalOutlierFactor(n_neighbors=35,contamination=0.25)
+
+dataset['outlier'] = ii.fit_predict(dataset[features])
+del ii
+print(dataset[dataset['outlier'] == -1])
+
+
+
+
+
+
+
+
+
